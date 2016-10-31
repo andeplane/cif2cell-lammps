@@ -297,6 +297,53 @@ class COOFile(GeometryOutputFile):
             for b in a:
                 filestring += str(b.position)+" %3i  0.500 0.000 1.000\n"%(ed.elementnr[b.spcstring()])
         return filestring
+
+################################################################################################
+# XYZ FILE
+class LAMMPSFile(GeometryOutputFile):
+    """
+    Class for storing the geometrical data needed for outputting an .data LAMMPS file
+    and the method __str__ that outputs the contents of the .data file as a string.
+    """
+    def __init__(self,crystalstructure,string):
+        GeometryOutputFile.__init__(self,crystalstructure,string)
+        # To be put on the second line
+        self.programdoc = ""
+    def __str__(self):
+        filestring = ""
+        filestring += "#"+self.docstring+"\n\n"
+        filestring += "%i atoms\n" % sum([len(v) for v in self.cell.atomdata])
+        atomTypes = {}
+        nextAtomTypeId = 1
+
+        for a in self.cell.atomdata:
+            for b in a:
+                atomType = str(b).split()[0]
+                if not atomType in atomTypes:
+                    atomTypes[atomType] = nextAtomTypeId
+                    nextAtomTypeId += 1
+        filestring += "%i atom types\n\n" % len(atomTypes)
+        filestring += "Atoms\n\n"
+
+        nextAtomId = 1
+
+        #for b in [a for a in self.cell.atomdata]:
+            #print str(b).split()[0]
+        #atomTypes str(b).split()[0]
+
+        lv = []
+        for i in range(3):
+            lv.append([])
+            for j in range(3):
+                lv[i].append(self.cell.lengthscale*self.cell.latticevectors[i][j])
+        for a in self.cell.atomdata:
+            for b in a:
+                t = Vector(mvmult3(lv,b.position))
+                atomType = str(b).split()[0]
+                atomTypeId = atomTypes[atomType]
+                filestring += str(nextAtomId)+" "+str(atomTypeId)+" "+str(t)+"\n"
+                nextAtomId += 1
+        return filestring
     
 ################################################################################################
 # XYZ FILE
