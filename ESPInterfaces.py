@@ -323,6 +323,29 @@ class LAMMPSFile(GeometryOutputFile):
                     atomTypes[atomType] = nextAtomTypeId
                     nextAtomTypeId += 1
         filestring += "%i atom types\n\n" % len(atomTypes)
+
+        t = self.cell.lengthscale
+        print self.cell.latticevectors[0].scalmult(t)
+        print self.cell.latticevectors[1].scalmult(t)
+        print self.cell.latticevectors[2].scalmult(t)
+        xy = self.cell.lengthscale*self.cell.latticevectors[0][1]
+        xz = self.cell.lengthscale*self.cell.latticevectors[0][2]
+        yz = self.cell.lengthscale*self.cell.latticevectors[1][2]
+        print xy
+        print xz
+        print yz
+
+        a = self.cell.latticevectors[0].length()*self.cell.lengthscale
+        b = self.cell.latticevectors[1].length()*self.cell.lengthscale
+        c = self.cell.latticevectors[2].length()*self.cell.lengthscale
+
+        filestring += "0.0 %f xlo xhi\n" % a
+        filestring += "0.0 %f ylo yhi\n" % b
+        filestring += "0.0 %f zlo zhi\n" % c
+        if xy!=0 or xz !=0 or yz != 0:
+            filestring += str(xy) + " " + str(xz) + " " + str(yz) + " xy xz yz\n"
+
+        filestring += "\n"
         filestring += "Atoms\n\n"
 
         nextAtomId = 1
