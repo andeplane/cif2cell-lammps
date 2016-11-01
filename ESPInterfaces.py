@@ -324,20 +324,51 @@ class LAMMPSFile(GeometryOutputFile):
                     nextAtomTypeId += 1
         filestring += "%i atom types\n\n" % len(atomTypes)
 
-        t = self.cell.lengthscale
-        print self.cell.latticevectors[0].scalmult(t)
-        print self.cell.latticevectors[1].scalmult(t)
-        print self.cell.latticevectors[2].scalmult(t)
-        xy = self.cell.lengthscale*self.cell.latticevectors[0][1]
-        xz = self.cell.lengthscale*self.cell.latticevectors[0][2]
-        yz = self.cell.lengthscale*self.cell.latticevectors[1][2]
-        print xy
-        print xz
-        print yz
+        if self.cell.latticevectors[0][1]!=0:
+            theta = math.atan2(-self.cell.latticevectors[0][1], self.cell.latticevectors[0][0])
+            c = cos(theta)
+            s = sin(theta)
+            R = LatticeMatrix([[c, s, 0],
+                                [-s, c, 0],
+                                [0, 0, 1]])
+            self.cell.latticevectors[0] = Vector(mvmult3(R,self.cell.latticevectors[0]))
+            self.cell.latticevectors[1] = Vector(mvmult3(R,self.cell.latticevectors[1]))
+            self.cell.latticevectors[2] = Vector(mvmult3(R,self.cell.latticevectors[2]))
 
-        a = self.cell.latticevectors[0].length()*self.cell.lengthscale
-        b = self.cell.latticevectors[1].length()*self.cell.lengthscale
-        c = self.cell.latticevectors[2].length()*self.cell.lengthscale
+        if self.cell.latticevectors[0][2]!=0:
+            theta = math.atan2(-self.cell.latticevectors[0][2], self.cell.latticevectors[0][0])
+            c = cos(theta)
+            s = sin(theta)
+            R = LatticeMatrix([[c, s, 0],
+                                [0, 1, 0],
+                                [-s, c, 0]])
+            self.cell.latticevectors[0] = Vector(mvmult3(R,self.cell.latticevectors[0]))
+            self.cell.latticevectors[1] = Vector(mvmult3(R,self.cell.latticevectors[1]))
+            self.cell.latticevectors[2] = Vector(mvmult3(R,self.cell.latticevectors[2]))
+
+        if self.cell.latticevectors[1][2]!=0:
+            theta = math.atan2(-self.cell.latticevectors[1][2], self.cell.latticevectors[1][1])
+            c = cos(theta)
+            s = sin(theta)
+            R = LatticeMatrix([[1, 0, 0],
+                                [0, c, s],
+                                [0, -s, c]])
+            self.cell.latticevectors[0] = Vector(mvmult3(R,self.cell.latticevectors[0]))
+            self.cell.latticevectors[1] = Vector(mvmult3(R,self.cell.latticevectors[1]))
+            self.cell.latticevectors[2] = Vector(mvmult3(R,self.cell.latticevectors[2]))
+
+        if self.cell.latticevectors[0][1]!=0 or self.cell.latticevectors[0][2] != 0 or self.cell.latticevectors[1][2]!=0 or self.cell.latticevectors[0][0] <= 0 or self.cell.latticevectors[1][1] <= 0 or self.cell.latticevectors[2][2] <= 0:
+            print "Error in triclinic box. Vectors should follow these rules: http://lammps.sandia.gov/doc/Section_howto.html#howto-12"
+            print "Ideally, this program should solve this, but it doesn't yet. You need to fix it."
+            exit()
+
+        xy = self.cell.lengthscale*self.cell.latticevectors[1][0]
+        xz = self.cell.lengthscale*self.cell.latticevectors[2][0]
+        yz = self.cell.lengthscale*self.cell.latticevectors[2][1]
+
+        a = self.cell.latticevectors[0][0]*self.cell.lengthscale
+        b = self.cell.latticevectors[1][1]*self.cell.lengthscale
+        c = self.cell.latticevectors[2][2]*self.cell.lengthscale
 
         filestring += "0.0 %f xlo xhi\n" % a
         filestring += "0.0 %f ylo yhi\n" % b
