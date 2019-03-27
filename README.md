@@ -24,6 +24,7 @@ the primitive cell or the conventional cell.
 | CPMD             |  no           | [compoundname].inp |
 | CASTEP           | VCA           | [compoundname].cell |
 | Crystal09        |  no           | [compoundname].d12 |
+| DFTB+            |  no           | [compoundname].gen |
 | quantum espresso |  no           | [compoundname].in |
 | FHI-aims         |  no           | geometry.in |
 | RSPt             |  no           | symt.inp |
