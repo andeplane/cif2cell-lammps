@@ -17,7 +17,7 @@
 #******************************************************************************************
 #  Description: Interfaces for a number of electronic structure programs. Currently only
 #               reads CIF and outputs to the ESP's. Supported programs are: ABINIT, CASTEP,
-#               CPMD, Crystal09, Elk, EMTO, Exciting, Fleur, Hutsepot, NCOL, Quantum Espresso,
+#               CPMD, Crystal09, DFTB+, Elk, EMTO, Exciting, Fleur, Hutsepot, NCOL, Quantum Espresso,
 #               RSPt, Siesta, VASP, xyz
 #               
 #  Author:      Torbjorn Bjorkman, torbjorn.bjorkman(at)aalto.fi
@@ -1672,6 +1672,49 @@ class CPMDFile(GeometryOutputFile):
             filestring += str(natoms)+"\n"
             filestring += posstring
         filestring += "&END\n"
+        return filestring
+
+################################################################################################
+# DFTB
+class DFTBFile(GeometryOutputFile):
+    """
+    Class for storing the geometrical data for a DFTB run and the method
+    __str__ that outputs to a .gen file as a string.
+    """
+    def __init__(self, crystalstructure, string):
+        GeometryOutputFile.__init__(self,crystalstructure,string)
+        self.cell.newunit("angstrom")
+        # Make sure the docstring has comment form
+        self.docstring = self.docstring.rstrip("\n")
+        tmpstrings = self.docstring.split("\n")
+        self.docstring = ""
+        for string in tmpstrings:
+            string = string.lstrip("#")
+            string = "#"+string+"\n"
+            self.docstring += string
+    def __str__(self):
+        natoms = sum([len(a) for a in self.cell.atomdata])
+        filestring = self.docstring
+        # Assumes the user wants cartesian coordinates ('S'), not fractional ('F')
+        filestring += str(natoms) + " S\n"
+        species = set([])
+        natom = 0
+        for a in self.cell.atomdata:
+            natom += len(a)
+            for b in a:
+                species.add(b.spcstring())
+        filestring += ' '.join(species) + "\n"
+        # Numbered dictionary from entry 1
+        nameDict = dict(zip(species, range(1, len(species) + 1)))
+        nAt = 0
+        for a in self.cell.atomdata:
+            for b in a:
+                nAt += 1
+                filestring += str(nAt)+" "+str(nameDict[b.spcstring()])+str(Vector(mvmult3(self.cell.latticevectors,b.position)).scalmult(self.cell.lengthscale))+"\n"
+        filestring += "  0.0 0.0 0.0\n"
+        filestring += str(self.cell.latticevectors[0].scalmult(self.cell.lengthscale))+"\n"
+        filestring += str(self.cell.latticevectors[1].scalmult(self.cell.lengthscale))+"\n"
+        filestring += str(self.cell.latticevectors[2].scalmult(self.cell.lengthscale))+"\n"
         return filestring
 
 ################################################################################################

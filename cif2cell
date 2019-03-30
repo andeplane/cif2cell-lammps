@@ -49,7 +49,7 @@ version = "1.2.10"
 warnings.simplefilter("ignore",DeprecationWarning)
 
 # All supported output formats
-outputprograms = set(['abinit','castep','cfg','coo','cpmd','cp2k','crystal09','elk','emto','exciting','fhi-aims',
+outputprograms = set(['abinit','castep','cfg','coo','cpmd','cp2k','crystal09','dftb','elk','emto','exciting','fhi-aims',
                       ## 'fleur','ncol','mcsqs','rspt','siesta','sprkkr','vasp', # mcsqs not ready
                       'fleur','hutsepot','mopac','ncol', 'pwscf', 'quantum-espresso', 'rspt','siesta','sprkkr','vasp',
                       'ase','bmdl','cellgen','cif','kgrn','kfcd','kstr','shape','spacegroup',
@@ -873,6 +873,8 @@ else:
         elif outputprogram == "crystal09":
             # This is the naming convention from a large bunch of test cases, no idea why
             outputfile = outputfile+".d12"
+        elif outputprogram == "dftb":
+            outputfile = outputfile+".gen"
         elif outputprogram == "fhi-aims":
             outputfile = "geometry.in"
         elif outputprogram == "fleur":
@@ -1156,6 +1158,15 @@ if outputprogram == 'crystal09':
     f.write(str(crystal09file))
     f.close()
     sys.exit(0)
+
+################################################################################################
+# Output for DFTB+
+if outputprogram == 'dftb':
+    docstring = StandardDocstring()
+    dftbinput = DFTBFile(cd, docstring)
+    f = open(outputfile, outmode)
+    f.write(str(dftbinput))
+    f.close()
 
 ################################################################################################
 # EMTO PROGRAMS
